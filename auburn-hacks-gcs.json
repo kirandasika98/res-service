@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "auburn-hacks",
+  "private_key_id": "c066f2a2e721222807af0706597fff4501eedfb6",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDh0THyX/r+6mtG\ni7ljAm+bmdnJ6u/xrr4G4oK9EJ+DV5nNRZ0df0Tv2OePlgQatc5ifqOjNxOjw5Gg\nQMca8H9iQ05bo3tXqZ6XF1Rg0abOsvhOWPu2uK13vB6VaNL6f9fPDUR4DbFHczLt\nbmR4Lo46wtC9LxvcyOIPXpOOp5zCR+jjp31futhoufyqmYEUEJNl/dBSZhecXEtE\nbY5RVAVCzQ7eQYqOOA3j7ljOGwHD32JxqmvChVLsFu8eHysp9dnFN2E4X/PvasTI\nf/cTgJx59PfdCGc16DOswR8Jwy7du8B0O8kCU3C8cNW0854kcwIbGsWDnU03oY+x\n2Rm0JGp/AgMBAAECggEAB/HjH5IQ08VFK2hGzhQxiyP8/ZK2caCZrCOzwKsM09qS\nHU1BHOqFKVgItUD4KBbIm4RvkSmixdkw8ZZl3GHqwt/JEu7xwyDDNoLV2Bt4NXPJ\nhDttUwM00b/xCYXdTU/tV4c9eIAGGZRO9p5hRNBKgk4cSp9Po1NcvXiCaszfU3PB\nCSrASyyoVmS6/FRt5XjK0XlTgUiOSC5hV00TLQPDob2kxIQtNBFw4+1SkhDvtDHj\nHYB38S8x3sPBGOoebiL3hf+H5GwyigKdQ9ygaGh6ARstVL57qeJm+xnZ1ealxIB1\naM+fiPj7sJqlxloMZYc/1VMZ3gNWxWN4XW+JnqaldQKBgQD3ANdd6j1X7Ot0VpHN\nMsYnHP6226jVcEM8xK63NY9j86/0NehFMHZwIpg69ZD93APo2ANa95WDsPlVmXtc\nSQGC9/jmjjKG6VHQoh0hcD6NWXmP8LXgMRMwBFTb/hHCe/+LW2tzRyxeurNkKRJF\n6uXfG6Q5DmpSy/9AhpJtxrdaxQKBgQDqCs5OMFd/31LbuNc8KjqR0pjGyG6rlw7j\n6R5BF7zJWnp3OFrv64FELVxmX4U2D0GcA+4iIEPVsfHYfHxbENKvgUqabFtA4hkY\nQEb1EwdAHDzmgZeBOt/EueXY3KzxhTP1XlexOcz1wuHX1214ys/t0YftmQCQ9MOr\naBGCZeZUcwKBgQDzxQHH7xBBgVHSzEky0aRcH7KGdv0GQLgq9hVUPOjaBTsm8jjc\nZ/rLqmjA72/8CjJVjzKoiWYmxPcd8s6bgnWacu5TZA0btpMHK6dCRAuH5sEhPLfS\nnbxJDE1PnEycu1G1kDDYYWq5xtqaxCoDlNLuwNHveXmXYzrzzJwg+Rgl3QKBgQCC\nm4cn8ShTTvBxd8R9ad+Hkyv4+s9v6HvByk087B9Jirl/IK725skbn+jJpJK1aWwm\nwba5yqGwdn5NXqMTOt8oXBGi/ccq/UId23j9uSG5sEh4JmfDEXTg1xEipXvJyJkH\nXB+54lSz7Y6VIj6QQzYoNF8Tw+eh/UXYuNnUmEMiawKBgBThQLdgZqczzzWqObmR\nSSLrMqJlwSnneK4EEGVJDsUBunY0aO+NajZFM/1EHibWGr9g9DoOk/gWscYdgZC/\nQqDa+8LuA4g7wn6eEwRcrm6jBpgwRhYC6Uyi6sCmrDW1pfPD2eAPH/diSNFTEtzG\nXstw1V040qNwJ2+xOuTm2hSv\n-----END PRIVATE KEY-----\n",
+  "client_email": "auhck-gcs@auburn-hacks.iam.gserviceaccount.com",
+  "client_id": "104615609644119154908",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://accounts.google.com/o/oauth2/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/auhck-gcs%40auburn-hacks.iam.gserviceaccount.com"
+}
