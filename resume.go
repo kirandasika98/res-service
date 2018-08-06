@@ -51,7 +51,7 @@ type Resume struct {
 	file   multipart.File `json:"-"`
 }
 
-func NewResume(userID string, name string, email string, file multipart.File,
+func NewResume(userID string, email string, file multipart.File,
 	header *multipart.FileHeader) (*Resume, error) {
 	uuid, err := uuid.NewV4()
 	if err != nil {
