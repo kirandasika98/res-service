@@ -120,7 +120,7 @@ func (r *Resume) Save(ctx context.Context) error {
 	return nil
 }
 
-func GetAllResumes(ctx context.Context) ([]Resume, error) {
+func getAllResumes(ctx context.Context) ([]Resume, error) {
 	cur, err := ResumeCollection.Find(ctx, nil)
 	if err != nil {
 		return nil, err

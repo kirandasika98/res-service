@@ -62,6 +62,7 @@ func main() {
 	r.HandleFunc("/", index).Methods("GET")
 	r.HandleFunc("/upload", upload).Methods("POST")
 	r.HandleFunc("/can_upload", canUpload).Methods("GET")
+	r.Handle("/resumes", isAuthenticated(http.HandlerFunc(allResumes))).Methods("GET")
 
 	s := http.Server{
 		Handler: r,
@@ -82,6 +83,7 @@ func main() {
 }
 
 func index(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
 	w.Write(marshal(map[string]interface{}{"ok": true}))
 }
@@ -147,6 +149,20 @@ func canUpload(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func allResumes(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	res, err := getAllResumes(r.Context())
+	if err != nil {
+		logrus.Errorf("error: %v", err)
+		http.Error(w, string(marshal(map[string]interface{}{"ok": false,
+			"error": err.Error()})), 500)
+		return
+	}
+	w.WriteHeader(200)
+	w.Write(marshal(map[string]interface{}{"ok": true, "data": res}))
+}
+
 func loggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		enableCors(&w)
@@ -157,6 +173,14 @@ func loggingMiddleware(next http.Handler) http.Handler {
 
 func isAuthenticated(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		authSlice, ok := r.Header["Authorization"]
+		if !ok {
+			http.Error(w, string(marshal(map[string]interface{}{"ok": false,
+				"error": fmt.Sprintf("endpoint %s needs authorization", r.RequestURI)})), 401)
+			return
+		}
+		token := strings.Split(authSlice[0], " ")
+		logrus.Infof("auth token: %s", token[1])
 		next.ServeHTTP(w, r)
 	})
 }
@@ -165,6 +189,7 @@ func enableCors(w *http.ResponseWriter) {
 	(*w).Header().Set("Access-Control-Allow-Origin", "*")
 	(*w).Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
 }
+
 func marshal(o interface{}) []byte {
 	if o == nil {
 		return nil
