@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -11,9 +12,13 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/golang/glog"
 	"github.com/gorilla/mux"
 	"github.com/mongodb/mongo-go-driver/mongo"
-	"github.com/sirupsen/logrus"
+)
+
+const (
+	AdminAuth = "admin:admin"
 )
 
 var (
@@ -36,23 +41,24 @@ func init() {
 	MongoConnString = fmt.Sprintf(MongoConnString, *MongoUser, *MongoPassword)
 }
 func main() {
+	defer glog.Flush()
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	// connecting to mongo server
 	MongoClient, err := mongo.NewClient(MongoConnString)
 	if err != nil {
-		logrus.Errorf("error: %v", err)
+		glog.Fatalf("error: %v", err)
 		os.Exit(1)
 	}
-	logrus.Infof("connecting to %s", MongoConnString)
+	glog.Infof("connecting to %s", MongoConnString)
 	if err := MongoClient.Connect(ctx); err != nil {
-		logrus.Errorf("error: %v", err)
+		glog.Fatalf("error: %v", err)
 		os.Exit(1)
 	}
 	ResumeCollection = MongoClient.Database("resumes").Collection("resumes_19")
 	// init GCS
 	if err := GCSInit(ctx); err != nil {
-		logrus.Errorf("error: %v", err)
+		glog.Fatalf("error: %v", err)
 		os.Exit(1)
 	}
 
@@ -61,6 +67,7 @@ func main() {
 
 	r.HandleFunc("/", index).Methods("GET")
 	r.HandleFunc("/upload", upload).Methods("POST")
+	r.HandleFunc("/healthz", healthz).Methods("GET")
 	r.HandleFunc("/can_upload", canUpload).Methods("GET")
 	r.Handle("/resumes", isAuthenticated(http.HandlerFunc(allResumes))).Methods("GET")
 
@@ -68,10 +75,10 @@ func main() {
 		Handler: r,
 		Addr:    *listenAddr,
 	}
-	logrus.Infof("server running on %s pid: %d", s.Addr, os.Getpid())
+	glog.Infof("server running on %s pid: %d", s.Addr, os.Getpid())
 	go func() {
 		if err := s.ListenAndServe(); err != nil {
-			logrus.Errorf("error: %v", err)
+			glog.Fatalf("error: %v", err)
 			os.Exit(1)
 		}
 	}()
@@ -120,14 +127,14 @@ func upload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := res.Upload(); err != nil {
-		logrus.Errorf("error: %v", err)
+		glog.Fatalf("error: %v", err)
 		http.Error(w, string(marshal(map[string]interface{}{"ok": false,
 			"error": err.Error()})), 500)
 		return
 	}
 
 	if err := res.Save(r.Context()); err != nil {
-		logrus.Errorf("error: %v", err)
+		glog.Fatalf("error: %v", err)
 		http.Error(w, string(marshal(map[string]interface{}{"ok": false,
 			"error": err.Error()})), 500)
 		return
@@ -154,7 +161,7 @@ func allResumes(w http.ResponseWriter, r *http.Request) {
 
 	res, err := getAllResumes(r.Context())
 	if err != nil {
-		logrus.Errorf("error: %v", err)
+		glog.Fatalf("error: %v", err)
 		http.Error(w, string(marshal(map[string]interface{}{"ok": false,
 			"error": err.Error()})), 500)
 		return
@@ -163,10 +170,15 @@ func allResumes(w http.ResponseWriter, r *http.Request) {
 	w.Write(marshal(map[string]interface{}{"ok": true, "data": res}))
 }
 
+func healthz(w http.ResponseWriter, r *http.Request) {
+	// perform health check by connecting to mongo
+	w.WriteHeader(200)
+	w.Write([]byte("ok"))
+}
 func loggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		enableCors(&w)
-		logrus.Infof("%s %s", r.Method, r.RequestURI)
+		glog.Infof("%s %s", r.Method, r.RequestURI)
 		next.ServeHTTP(w, r)
 	})
 }
@@ -180,7 +192,13 @@ func isAuthenticated(next http.Handler) http.Handler {
 			return
 		}
 		token := strings.Split(authSlice[0], " ")
-		logrus.Infof("auth token: %s", token[1])
+		glog.V(4).Infof("auth token: %s", token[1])
+		tokenDecoded, _ := base64.StdEncoding.DecodeString(token[1])
+		if string(tokenDecoded) != AdminAuth {
+			http.Error(w, string(marshal(map[string]interface{}{"ok": false,
+				"error": "invalid authorization"})), 401)
+			return
+		}
 		next.ServeHTTP(w, r)
 	})
 }
@@ -196,7 +214,7 @@ func marshal(o interface{}) []byte {
 	}
 	data, err := json.Marshal(o)
 	if err != nil {
-		logrus.Errorf("marshal error: %v", err)
+		glog.Fatalf("marshal error: %v", err)
 	}
 	return data
 }
