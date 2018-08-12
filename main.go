@@ -25,7 +25,8 @@ var (
 	listenAddr      *string
 	MongoUser       *string
 	MongoPassword   *string
-	MongoConnString = "mongodb://%s:%s@ds213612.mlab.com:13612/resumes"
+	MongoCollection *string
+	MongoConnString = "mongodb://%s:%s@ds213612.mlab.com:13612/%s"
 
 	MongoClient      *mongo.Client
 	ResumeCollection *mongo.Collection
@@ -35,10 +36,11 @@ func init() {
 	listenAddr = flag.String("listen_addr", "localhost:8001", "listening address")
 	MongoUser = flag.String("mongo_user", "svc_acc", "mongodb username")
 	MongoPassword = flag.String("mongo_password", "admin123", "mongodb password")
+	MongoCollection = flag.String("mongo_collection", "resumes", "mongodb collection that needs to be used")
 
 	flag.Parse()
 
-	MongoConnString = fmt.Sprintf(MongoConnString, *MongoUser, *MongoPassword)
+	MongoConnString = fmt.Sprintf(MongoConnString, *MongoUser, *MongoPassword, *MongoCollection)
 }
 func main() {
 	// this is to make sure that the logs are written to stderr
@@ -88,6 +90,8 @@ func main() {
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 
 	<-c
+	glog.V(0).Infof("handing graceful shutdown...")
+	s.Shutdown(ctx)
 	os.Exit(0)
 }
 
