@@ -41,7 +41,9 @@ func init() {
 	MongoConnString = fmt.Sprintf(MongoConnString, *MongoUser, *MongoPassword)
 }
 func main() {
+	// this is to make sure that the logs are written to stderr
 	defer glog.Flush()
+	// application root context used where request context is not used
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	// connecting to mongo server
@@ -192,7 +194,7 @@ func isAuthenticated(next http.Handler) http.Handler {
 			return
 		}
 		token := strings.Split(authSlice[0], " ")
-		glog.V(4).Infof("auth token: %s", token[1])
+		glog.Infof("auth token: %s", token[1])
 		tokenDecoded, _ := base64.StdEncoding.DecodeString(token[1])
 		if string(tokenDecoded) != AdminAuth {
 			http.Error(w, string(marshal(map[string]interface{}{"ok": false,
