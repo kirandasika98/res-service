@@ -1,5 +1,5 @@
 build:
-	go build
+	go build -v
 run:
 	./res-service -logtostderr=true \
 		-v=0 \
