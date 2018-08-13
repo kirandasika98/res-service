@@ -16,7 +16,7 @@ RUN go get -u cloud.google.com/go/storage
 RUN go get -u github.com/mongodb/mongo-go-driver/mongo
 
 # Move source files
-COPY *.go .
+COPY *.go ./
 
 # Compile the code
 RUN CGO_ENABLED=0 go install -a std
@@ -27,6 +27,7 @@ RUN CGO_ENABLED=0 \
     -ldflags '-extflags "-static"' \
     -installsuffix cgo \
     -o main .
+# Release image
 FROM alpine
 WORKDIR /app
 RUN apk update \
