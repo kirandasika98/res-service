@@ -11,9 +11,9 @@ import (
 	"time"
 
 	"cloud.google.com/go/storage"
-	"github.com/golang/glog"
 	"github.com/mongodb/mongo-go-driver/bson"
 	uuid "github.com/satori/go.uuid"
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -97,11 +97,11 @@ func (r *Resume) Upload() error {
 	// TODO: change the ACL rules to be anything other than public, look at signedURL's
 	wc.ACL = []storage.ACLRule{{Entity: storage.AllUsers, Role: storage.RoleReader}}
 	if _, err := io.Copy(wc, r.file); err != nil {
-		glog.Fatalf("Error: %s", err.Error())
+		logrus.Errorf("Error: %s", err.Error())
 		return err
 	}
 	if err := wc.Close(); err != nil {
-		glog.Fatalf("Error: %s", err.Error())
+		logrus.Errorf("Error: %s", err.Error())
 		return err
 	}
 	r.URL = fmt.Sprintf(GCSPubURL, string(ResumeBucket), string(r.Name))

@@ -1,9 +1,15 @@
 sudo: required
 
+language: go
+
 services:
     - docker
 install:
     - echo "nothing to install"
+scripts:
+    - echo "nothing"
+
+
 after_success:
     - docker --version
     - docker built -t kirandasika30/res-service -f Dockerfile .
