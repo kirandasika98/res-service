@@ -24,7 +24,7 @@ RUN CGO_ENABLED=0 go build -ldflags '-d -w -s'
 RUN CGO_ENABLED=0 \
     GOOS='linux' \
     go build -a \
-    -ldflags '-extflags "-static"' \
+    -ldflags '-extldflags "-static"' \
     -installsuffix cgo \
     -o main .
 # Release image
