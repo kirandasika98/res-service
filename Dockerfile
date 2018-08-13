@@ -34,8 +34,6 @@ RUN apk update \
     && apk add ca-certificates \
     && rm -rf /var/cache/apk/*
 
-COPY auburn-hacks-gcs.json .
-
 COPY --from=build /go/src/res-service/main .
 
 ENTRYPOINT ./main -v=0 \
