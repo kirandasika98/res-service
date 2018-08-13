@@ -6,8 +6,8 @@ services:
     - docker
 install:
     - echo "nothing to install"
-scripts:
-    - echo "nothing"
+script:
+    - echo "nothing at all"
 
 
 after_success:
