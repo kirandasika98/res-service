@@ -4,8 +4,6 @@ services:
     - docker
 install:
     - echo "nothing to install"
-scripts:
-    - echo "no scripts"
 after_success:
     - docker --version
     - docker built -t kirandasika30/res-service -f Dockerfile .
