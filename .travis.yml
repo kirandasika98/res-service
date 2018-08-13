@@ -1,0 +1,15 @@
+sudo: required
+
+language: go
+go:
+    - "1.10"
+
+services:
+    - docker
+install:
+    - echo "nothing to install"
+after_success:
+    - docker --version
+    - docker built -t kirandasika30/res-service -f Dockerfile .
+    - docker login -u $DOCKER_USERNAME --password-stdin
+    - docker push kirandasika30/res-service
