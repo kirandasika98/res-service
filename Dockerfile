@@ -27,6 +27,7 @@ RUN CGO_ENABLED=0 \
     -ldflags '-extldflags "-static"' \
     -installsuffix cgo \
     -o main .
+
 # Release image
 FROM alpine
 WORKDIR /app
@@ -35,6 +36,8 @@ RUN apk update \
     && rm -rf /var/cache/apk/*
 
 COPY --from=build /go/src/res-service/main .
+
+# Populate the google secrets through the configmap
 
 ENTRYPOINT ./main -v=0 \
            --logtostderr=true \
