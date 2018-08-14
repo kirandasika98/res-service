@@ -4,11 +4,13 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"strings"
 	"syscall"
 
@@ -26,6 +28,7 @@ var (
 	MongoUser       *string
 	MongoPassword   *string
 	MongoCollection *string
+	GCSCredentials  *string
 	MongoConnString = "mongodb://%s:%s@ds213612.mlab.com:13612/%s"
 
 	MongoClient      *mongo.Client
@@ -37,6 +40,7 @@ func init() {
 	MongoUser = flag.String("mongo_user", "svc_acc", "mongodb username")
 	MongoPassword = flag.String("mongo_password", "admin123", "mongodb password")
 	MongoCollection = flag.String("mongo_collection", "resumes", "mongodb collection that needs to be used")
+	GCSCredentials = flag.String("gcs_cred", "local", "specify [cluster|local] if cluster it will look for a env variable")
 
 	flag.Parse()
 
@@ -60,6 +64,13 @@ func main() {
 		os.Exit(1)
 	}
 	ResumeCollection = MongoClient.Database("resumes").Collection("resumes_19")
+	// save the gcs credentials before init
+	if *GCSCredentials == "cluster" {
+		if err := downloadGCSCredentials(); err != nil {
+			glog.Fatalf("error: %v", err)
+			os.Exit(1)
+		}
+	}
 	// init GCS
 	if err := GCSInit(ctx); err != nil {
 		glog.Fatalf("error: %v", err)
@@ -90,7 +101,7 @@ func main() {
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 
 	<-c
-	glog.V(0).Infof("handing graceful shutdown...")
+	glog.V(0).Infof("handling graceful shutdown...")
 	s.Shutdown(ctx)
 	os.Exit(0)
 }
@@ -210,10 +221,35 @@ func isAuthenticated(next http.Handler) http.Handler {
 }
 
 func enableCors(w *http.ResponseWriter) {
+	// TODO: remove this in actual production
 	(*w).Header().Set("Access-Control-Allow-Origin", "*")
-	(*w).Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+	(*w).Header().Set("Access-Control-Allow-Headers",
+		"Accept, Content-Type, Content-Length, "+
+			"Accept-Encoding, X-CSRF-Token, Authorization")
 }
 
+func downloadGCSCredentials() error {
+	// Looks for GCS_CREDENTIALS env variable
+	if credData := os.Getenv("GCS_CREDENTIALS"); credData != "" {
+		wd, err := os.Getwd()
+		if err != nil {
+			return err
+		}
+		credPath := filepath.Join(wd, CredFileName)
+		f, err := os.Create(credPath)
+		if err != nil {
+			return err
+		}
+		defer f.Close()
+		_, err = f.Write([]byte(credData))
+		if err != nil {
+			return err
+		}
+	} else {
+		return errors.New("env variable GCS_CREDENTIALS not set")
+	}
+	return nil
+}
 func marshal(o interface{}) []byte {
 	if o == nil {
 		return nil
