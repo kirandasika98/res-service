@@ -280,7 +280,7 @@ func pullFile() error {
 		return err
 	}
 	path := filepath.Join(wd, CredFileName)
-	file, err := os.OpenFile(path, os.O_RDWR, 0644)
+	file, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0644)
 	if err != nil {
 		return err
 	}

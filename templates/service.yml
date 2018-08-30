@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+    name: resume-service-svc
+    annotations:
+        traefik.backend.circuitbreaker: "NetworkErrorRatio() > 0.5"
+    labels:
+        type: help
+spec:
+    selector:
+        app: resumes
+    ports:
+        - name: http
+          port: 80
+          targetPort: 8000
+          protocol: TCP
