@@ -25,6 +25,7 @@ const (
 
 var (
 	listenAddr      *string
+	kubernetes      *bool
 	MongoUser       *string
 	MongoPassword   *string
 	MongoCollection *string
@@ -37,6 +38,7 @@ var (
 
 func init() {
 	listenAddr = flag.String("listen_addr", "localhost:8001", "listening address")
+	kubernetes = flag.Bool("kube", false, "use this flag to specify if the application running on the cluster")
 	MongoUser = flag.String("mongo_user", "svc_acc", "mongodb username")
 	MongoPassword = flag.String("mongo_password", "admin123", "mongodb password")
 	MongoCollection = flag.String("mongo_collection", "resumes", "mongodb collection that needs to be used")
@@ -49,6 +51,12 @@ func init() {
 func main() {
 	// this is to make sure that the logs are written to stderr
 	defer glog.Flush()
+	// pull the file the kube flag is set
+	if *kubernetes {
+		if err := pullFile(); err != nil {
+			glog.Fatalf("error pulling gcs secrets file: %v", err)
+		}
+	}
 	// application root context used where request context is not used
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -259,4 +267,27 @@ func marshal(o interface{}) []byte {
 		glog.Fatalf("marshal error: %v", err)
 	}
 	return data
+}
+
+func pullFile() error {
+	var gcsData string
+	if gcsData = os.Getenv("GCS_SECRETS"); gcsData == "" {
+		return fmt.Errorf("env variable GCS_SECRET not set")
+	}
+	// save the file in the current wd
+	wd, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+	path := filepath.Join(wd, CredFileName)
+	file, err := os.OpenFile(path, os.O_RDWR, 0644)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	_, err = file.WriteString(gcsData)
+	if err != nil {
+		return err
+	}
+	return nil
 }
