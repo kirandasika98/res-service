@@ -31,6 +31,7 @@ var (
 	MongoCollection *string
 	GCSCredentials  *string
 	MongoConnString = "mongodb://%s:%s@ds213612.mlab.com:13612/%s"
+	Hostname        string
 
 	MongoClient      *mongo.Client
 	ResumeCollection *mongo.Collection
@@ -57,6 +58,11 @@ func main() {
 			glog.Fatalf("error pulling gcs secrets file: %v", err)
 		}
 	}
+	hostname, err := os.Hostname()
+	if err != nil {
+		glog.Fatalf("error while getting hostname: %v", err)
+	}
+	Hostname = hostname
 	// application root context used where request context is not used
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -234,6 +240,7 @@ func enableCors(w *http.ResponseWriter) {
 	(*w).Header().Set("Access-Control-Allow-Headers",
 		"Accept, Content-Type, Content-Length, "+
 			"Accept-Encoding, X-CSRF-Token, Authorization")
+	(*w).Header().Set("X-Served-Host", Hostname)
 }
 
 func downloadGCSCredentials() error {
