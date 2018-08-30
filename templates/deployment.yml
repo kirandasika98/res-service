@@ -25,6 +25,7 @@ spec:
               - -logtostderr=true
               - -v=0
               - --listen_addr=:8000
+              - --kube
               env:
               - name: GCS_SECRETS
                 valueFrom:
