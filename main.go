@@ -235,11 +235,12 @@ func isAuthenticated(next http.Handler) http.Handler {
 }
 
 func enableCors(w *http.ResponseWriter) {
-	// TODO: remove this in actual production
-	(*w).Header().Set("Access-Control-Allow-Origin", "*")
-	(*w).Header().Set("Access-Control-Allow-Headers",
-		"Accept, Content-Type, Content-Length, "+
-			"Accept-Encoding, X-CSRF-Token, Authorization")
+	if *kubernetes == false {
+		(*w).Header().Set("Access-Control-Allow-Origin", "*")
+		(*w).Header().Set("Access-Control-Allow-Headers",
+			"Accept, Content-Type, Content-Length, "+
+				"Accept-Encoding, X-CSRF-Token, Authorization")
+	}
 	(*w).Header().Set("X-Served-Host", Hostname)
 }
 
