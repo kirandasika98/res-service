@@ -39,6 +39,4 @@ COPY --from=build /go/src/res-service/main .
 
 # Populate the google secrets through the configmap
 
-ENTRYPOINT ./main -v=0 \
-           --logtostderr=true \
-           --listen_addr=:3000
+ENTRYPOINT ["./main"]

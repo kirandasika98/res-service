@@ -6,3 +6,5 @@ run:
 		--listen_addr=:8000
 clean:
 	rm res-service
+release:
+	GOOS=linux CGO_ENABLED=0 go build -o main 

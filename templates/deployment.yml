@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: resumes-deployment
+    namespace: default
+    labels:
+        type: help
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: resumes
+    template:
+        metadata:
+            labels:
+                app: resumes
+        spec:
+            containers:
+            - name: server
+              image: kirandasika30/resume-server
+              imagePullPolicy: Always
+              ports:
+                  - containerPort: 8000
+              args:
+              - -logtostderr=true
+              - -v=0
+              - --listen_addr=:8000
+              env:
+              - name: GCS_SECRETS
+                valueFrom:
+                    secretKeyRef:
+                        name: resume-gcs-secrets
+                        key: gcs.json
