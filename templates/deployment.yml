@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-    name: resumes-deployment
+    name: resumes-server
     namespace: default
     labels:
         type: help
@@ -9,11 +9,11 @@ spec:
     replicas: 1
     selector:
         matchLabels:
-            app: resumes
+            app: resumes-server
     template:
         metadata:
             labels:
-                app: resumes
+                app: resumes-server
         spec:
             containers:
             - name: server
