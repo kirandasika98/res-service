@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-    name: resumes-server
+    name: resume-server
     namespace: default
     labels:
         type: help
@@ -32,3 +32,11 @@ spec:
                     secretKeyRef:
                         name: resume-gcs-secrets
                         key: gcs.json
+              resources:
+                requests:
+                  cpu: "10m"
+                  memory: "30Mi"
+                limits:
+                  cpu: "25m"
+                  memory: "50Mi"
+
