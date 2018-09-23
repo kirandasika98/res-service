@@ -176,7 +176,14 @@ func upload(w http.ResponseWriter, r *http.Request) {
 }
 
 func canUpload(w http.ResponseWriter, r *http.Request) {
-	userID := r.URL.Query()["user_id"]
+	userID, ok := r.URL.Query()["user_id"]
+	if !ok {
+		// looks like there is no user name provided
+		w.WriteHeader(200)
+		w.Write(marshal(map[string]interface{}{"ok": false}))
+		return
+	}
+
 	res, _ := NewResumeWithUserID(userID[0])
 	if res == nil {
 		w.WriteHeader(200)
