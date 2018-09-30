@@ -30,6 +30,7 @@ var (
 	MongoPassword   *string
 	MongoCollection *string
 	GCSCredentials  *string
+	// TODO(kirandasika98): change this before uplod to github
 	MongoConnString = "mongodb://%s:%s@ds213612.mlab.com:13612/%s"
 	Hostname        string
 
@@ -38,11 +39,11 @@ var (
 )
 
 func init() {
-	listenAddr = flag.String("listen_addr", "localhost:8001", "listening address")
-	kubernetes = flag.Bool("kube", false, "use this flag to specify if the application running on the cluster")
 	MongoUser = flag.String("mongo_user", "svc_acc", "mongodb username")
 	MongoPassword = flag.String("mongo_password", "admin123", "mongodb password")
+	listenAddr = flag.String("listen_addr", "localhost:8001", "listening address")
 	MongoCollection = flag.String("mongo_collection", "resumes", "mongodb collection that needs to be used")
+	kubernetes = flag.Bool("kube", false, "use this flag to specify if the application running on the cluster")
 	GCSCredentials = flag.String("gcs_cred", "local", "specify [cluster|local] if cluster it will look for a env variable")
 
 	flag.Parse()
@@ -151,14 +152,17 @@ func upload(w http.ResponseWriter, r *http.Request) {
 			"error": "user_id and email are required"})), 403)
 		return
 	}
-	res, err := NewResume(userID, email, file, headers)
-	if err != nil {
-		http.Error(w, string(marshal(map[string]interface{}{"ok": false,
-			"error": err.Error()})), 403)
-		return
+	// res, err := NewResume(userID, email, file, headers)
+	var res *Resume
+	res, err = NewResumeWithUserID(userID)
+	if res != nil {
+		glog.Infof("user trying to reupload a resume")
+		res.file = file
+	} else {
+		res, err = NewResume(userID, email, file, headers)
 	}
 	if err := res.Upload(); err != nil {
-		glog.Fatalf("error: %v", err)
+		glog.Errorf("error: %v", err)
 		http.Error(w, string(marshal(map[string]interface{}{"ok": false,
 			"error": err.Error()})), 500)
 		return
@@ -285,6 +289,7 @@ func marshal(o interface{}) []byte {
 	return data
 }
 
+// pullFile reads the env variable and writes the contents as a file in the container
 func pullFile() error {
 	var gcsData string
 	if gcsData = os.Getenv("GCS_SECRETS"); gcsData == "" {

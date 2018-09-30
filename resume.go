@@ -44,11 +44,11 @@ func GCSInit(ctx context.Context) error {
 }
 
 type Resume struct {
-	UserID string         `json:"user_id"`
-	Name   string         `json:"name"`
-	Email  string         `json:"email"`
-	URL    string         `json:"url"`
-	file   multipart.File `json:"-"`
+	UserID string `json:"user_id"`
+	Name   string `json:"name"`
+	Email  string `json:"email"`
+	URL    string `json:"url"`
+	file   multipart.File
 }
 
 func NewResume(userID string, email string, file multipart.File,
