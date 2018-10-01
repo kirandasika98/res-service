@@ -11,8 +11,7 @@ script:
 
 
 after_success:
-    - SHA=$(git rev-parse HEAD)
     - docker --version
-    - docker build -t kirandasika30/resume-server:$SHA -f Dockerfile .
+    - docker build -t kirandasika30/resume-server:$TRAVIS_COMMIT -f Dockerfile .
     - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD 
-    - docker push kirandasika30/resume-server:$SHA
+    - docker push kirandasika30/resume-server:$TRAVIS_COMMIT

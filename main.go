@@ -214,7 +214,7 @@ func allResumes(w http.ResponseWriter, r *http.Request) {
 }
 
 func updateResume(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/jon")
+	w.Header().Set("Content-Type", "application/json")
 	file, headers, err := r.FormFile("resume")
 	if err != nil {
 		glog.Errorf("error fetching form file: %v", err)
