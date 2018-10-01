@@ -26,12 +26,10 @@ const (
 var (
 	listenAddr      *string
 	kubernetes      *bool
-	MongoUser       *string
-	MongoPassword   *string
 	MongoCollection *string
 	GCSCredentials  *string
-	// TODO(kirandasika98): change this before uplod to github
-	MongoConnString = "mongodb://%s:%s@ds213612.mlab.com:13612/%s"
+	MongoConnString *string
+	gcsBucket       *string
 	Hostname        string
 
 	MongoClient      *mongo.Client
@@ -39,16 +37,14 @@ var (
 )
 
 func init() {
-	MongoUser = flag.String("mongo_user", "svc_acc", "mongodb username")
-	MongoPassword = flag.String("mongo_password", "admin123", "mongodb password")
+
 	listenAddr = flag.String("listen_addr", "localhost:8001", "listening address")
-	MongoCollection = flag.String("mongo_collection", "resumes", "mongodb collection that needs to be used")
+	gcsBucket = flag.String("gcs_bucket", "resumes_19", "specify which gcs bucket to use")
 	kubernetes = flag.Bool("kube", false, "use this flag to specify if the application running on the cluster")
 	GCSCredentials = flag.String("gcs_cred", "local", "specify [cluster|local] if cluster it will look for a env variable")
+	MongoConnString = flag.String("mongo_uri", "mongodb://localhost:27017", "provide the mongodb that needs to be used.")
 
 	flag.Parse()
-
-	MongoConnString = fmt.Sprintf(MongoConnString, *MongoUser, *MongoPassword, *MongoCollection)
 }
 func main() {
 	// this is to make sure that the logs are written to stderr
@@ -68,12 +64,12 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	// connecting to mongo server
-	MongoClient, err := mongo.NewClient(MongoConnString)
+	MongoClient, err := mongo.NewClient(*MongoConnString)
 	if err != nil {
 		glog.Fatalf("error: %v", err)
 		os.Exit(1)
 	}
-	glog.Infof("connecting to %s", MongoConnString)
+	glog.Infof("connecting to %s", *MongoConnString)
 	if err := MongoClient.Connect(ctx); err != nil {
 		glog.Fatalf("error: %v", err)
 		os.Exit(1)

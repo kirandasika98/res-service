@@ -17,7 +17,6 @@ import (
 )
 
 const (
-	ResumeBucket = "resumes_19"
 	GCSPubURL    = "https://storage.googleapis.com/%s/%s"
 	CredFileName = "auburn-hacks-gcs.json"
 )
@@ -92,7 +91,7 @@ func (r *Resume) Upload() error {
 	// set up connection with gcs and start upload the resume
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	wc := GCSClient.Bucket(ResumeBucket).Object(r.Name).NewWriter(ctx)
+	wc := GCSClient.Bucket(*gcsBucket).Object(r.Name).NewWriter(ctx)
 
 	// TODO: change the ACL rules to be anything other than public, look at signedURL's
 	wc.ACL = []storage.ACLRule{{Entity: storage.AllUsers, Role: storage.RoleReader}}
@@ -104,7 +103,7 @@ func (r *Resume) Upload() error {
 		glog.Fatalf("Error: %s", err.Error())
 		return err
 	}
-	r.URL = fmt.Sprintf(GCSPubURL, string(ResumeBucket), string(r.Name))
+	r.URL = fmt.Sprintf(GCSPubURL, string(*gcsBucket), string(r.Name))
 	return nil
 }
 
