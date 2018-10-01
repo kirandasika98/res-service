@@ -14,6 +14,7 @@ RUN go get -u github.com/gorilla/mux
 RUN go get -u github.com/satori/go.uuid
 RUN go get -u cloud.google.com/go/storage
 RUN go get -u github.com/mongodb/mongo-go-driver/mongo
+RUN go get -u github.com/mongodb/mongo-go-driver/bson
 
 # Move source files
 COPY *.go ./
