@@ -121,14 +121,18 @@ func (r *Resume) Save(ctx context.Context) error {
 }
 
 func (r *Resume) Update(ctx context.Context) error {
-	doc, err := bson.Marshal(r)
-	if err != nil {
-		return err
-	}
-	filter := map[string]string{
-		"user_id": r.UserID,
-	}
-	_, err = ResumeCollection.UpdateOne(ctx, filter, doc)
+	filter := bson.NewDocument(
+		bson.EC.String("userid", r.UserID),
+	)
+	updateDoc := bson.NewDocument(
+		bson.EC.SubDocumentFromElements("$set",
+			bson.EC.String("url", r.URL),
+		),
+		bson.EC.SubDocumentFromElements(
+			"$currentDate", bson.EC.Boolean("lastModified", true),
+		),
+	)
+	_, err := ResumeCollection.UpdateOne(ctx, filter, updateDoc)
 	if err != nil {
 		return err
 	}

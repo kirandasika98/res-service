@@ -99,7 +99,7 @@ func main() {
 	r.HandleFunc("/upload", upload).Methods("POST")
 	r.HandleFunc("/healthz", healthz).Methods("GET")
 	r.HandleFunc("/can_upload", canUpload).Methods("GET")
-	r.HandleFunc("/resumes/update", updateResume).Methods("PUT")
+	r.HandleFunc("/resumes/update", updateResume).Methods("POST")
 	r.Handle("/resumes", isAuthenticated(http.HandlerFunc(allResumes))).Methods("GET")
 
 	s := http.Server{
