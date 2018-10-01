@@ -20,7 +20,6 @@ COPY *.go ./
 
 # Compile the code
 RUN CGO_ENABLED=0 go install -a std
-RUN CGO_ENABLED=0 go build -ldflags '-d -w -s'
 RUN CGO_ENABLED=0 \
     GOOS='linux' \
     go build -a \
