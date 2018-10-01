@@ -99,6 +99,7 @@ func main() {
 	r.HandleFunc("/upload", upload).Methods("POST")
 	r.HandleFunc("/healthz", healthz).Methods("GET")
 	r.HandleFunc("/can_upload", canUpload).Methods("GET")
+	r.HandleFunc("/resumes/update", updateResume).Methods("PUT")
 	r.Handle("/resumes", isAuthenticated(http.HandlerFunc(allResumes))).Methods("GET")
 
 	s := http.Server{
@@ -210,6 +211,56 @@ func allResumes(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(200)
 	w.Write(marshal(map[string]interface{}{"ok": true, "data": res}))
+}
+
+func updateResume(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/jon")
+	file, headers, err := r.FormFile("resume")
+	if err != nil {
+		glog.Errorf("error fetching form file: %v", err)
+		http.Error(w, string(marshal(map[string]interface{}{"ok": false})), http.StatusBadRequest)
+		return
+	}
+	defer file.Close()
+	name := strings.Split(headers.Filename, ".")
+	if name[1] != "pdf" {
+		glog.Errorf("invalid file schema: %s", name[1])
+		http.Error(w, string(marshal(map[string]interface{}{"ok": false,
+			"error": "only pdf version is supported"})), http.StatusBadRequest)
+		return
+	}
+	if err := r.ParseForm(); err != nil {
+		glog.Errorf("error parsing form: %v", err)
+		return
+	}
+
+	userID := r.FormValue("user_id")
+
+	resume, err := NewResumeWithUserID(userID)
+	if err != nil {
+		glog.Errorf("error fetching resume: %v", err)
+		http.Error(w, string(marshal(map[string]interface{}{"ok": false,
+			"error": fmt.Sprintf("error create resume: %v", err)})), http.StatusInternalServerError)
+		return
+	}
+
+	resume.file = file
+
+	if err := resume.Upload(); err != nil {
+		glog.Errorf("error uploading: %v", err)
+		http.Error(w, string(marshal(map[string]interface{}{"ok": false,
+			"error": fmt.Sprintf("error create resume: %v", err)})), http.StatusInternalServerError)
+		return
+	}
+	if err := resume.Update(r.Context()); err != nil {
+		glog.Errorf("error updating: %v", err)
+		http.Error(w, string(marshal(map[string]interface{}{"ok": false,
+			"error": fmt.Sprintf("error create resume: %v", err)})), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(marshal(map[string]interface{}{"ok": true}))
 }
 
 func healthz(w http.ResponseWriter, r *http.Request) {

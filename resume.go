@@ -120,6 +120,22 @@ func (r *Resume) Save(ctx context.Context) error {
 	return nil
 }
 
+func (r *Resume) Update(ctx context.Context) error {
+	doc, err := bson.Marshal(r)
+	if err != nil {
+		return err
+	}
+	filter := map[string]string{
+		"user_id": r.UserID,
+	}
+	_, err = ResumeCollection.UpdateOne(ctx, filter, doc)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func getAllResumes(ctx context.Context) ([]Resume, error) {
 	cur, err := ResumeCollection.Find(ctx, nil)
 	if err != nil {
