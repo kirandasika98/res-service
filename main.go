@@ -96,6 +96,7 @@ func main() {
 	r.HandleFunc("/healthz", healthz).Methods("GET")
 	r.HandleFunc("/can_upload", canUpload).Methods("GET")
 	r.HandleFunc("/resumes/update", updateResume).Methods("POST")
+	r.HandleFunc("/resumes/insight/{user_id}", resumeInsight).Methods("GET")
 	r.Handle("/resumes", isAuthenticated(http.HandlerFunc(allResumes))).Methods("GET")
 
 	s := http.Server{
@@ -257,6 +258,31 @@ func updateResume(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	w.Write(marshal(map[string]interface{}{"ok": true}))
+}
+
+func resumeInsight(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	glog.Info("this endpoint is in beta will be taken down if vulnerable")
+	vars := mux.Vars(r)
+	userID, ok := vars["user_id"]
+	if !ok {
+		glog.Errorf("no id was provided, early return")
+		w.Write([]byte("bye"))
+		return
+	}
+	glog.Infof("user_id: %s", userID)
+	resume, err := NewResumeWithUserID(userID)
+	if err != nil {
+		glog.Errorf("error while creating resume with id: %v", err)
+		http.Error(w, string(marshal(map[string]interface{}{"ok": false,
+			"error": fmt.Sprintf("error while creating resume with id: %v", err)})), http.StatusBadRequest)
+		return
+	}
+
+	// build the resume insight from this as we are not giving out all the data
+	resi := NewResumeInsightFromResume(resume)
+	w.WriteHeader(http.StatusOK)
+	w.Write(marshal(resi))
 }
 
 func healthz(w http.ResponseWriter, r *http.Request) {

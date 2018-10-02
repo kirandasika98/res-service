@@ -159,3 +159,17 @@ func getAllResumes(ctx context.Context) ([]Resume, error) {
 	}
 	return resumes, nil
 }
+
+type ResumeInsight struct {
+	UserID string `json:"user_id,omitempty"`
+	Name   string `json:"name,omitempty"`
+	URL    string `json:"url,omitempty"`
+}
+
+func NewResumeInsightFromResume(r *Resume) *ResumeInsight {
+	ri := new(ResumeInsight)
+	ri.Name = r.Name
+	ri.URL = r.URL
+	ri.UserID = r.UserID
+	return ri
+}
