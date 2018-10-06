@@ -1,3 +1,5 @@
+// resume.go implements all the function that are used by the http handlers in main.go.
+// This could probably be split into a separate package, but oh well!
 package main
 
 import (
@@ -17,12 +19,20 @@ import (
 )
 
 const (
-	GCSPubURL    = "https://storage.googleapis.com/%s/%s"
+	// GCSPubURL is a constant that represents the structure of a download link
+	// for a object on google cloud
+	GCSPubURL = "https://storage.googleapis.com/%s/%s"
+	// CredFileName is a constant that is used as the credentials filename
+	// used to connect to google cloud storage
 	CredFileName = "auburn-hacks-gcs.json"
 )
 
+// GCSClient is a variable that holds the active connection
+// to google cloud storage
 var GCSClient *storage.Client
 
+// GCSInit is a function that is run at the beginning of the program
+// to estabilish a connection to google cloud storage
 func GCSInit(ctx context.Context) error {
 	// cred file is always saved in the current dir as the binary
 	wd, err := os.Getwd()
@@ -42,6 +52,7 @@ func GCSInit(ctx context.Context) error {
 	return nil
 }
 
+// Resume is a struct that contains all the data for a resume
 type Resume struct {
 	UserID string `json:"user_id"`
 	Name   string `json:"name"`
@@ -50,6 +61,8 @@ type Resume struct {
 	file   multipart.File
 }
 
+// NewResume is a function that creates a new resume from the
+// userID, email, file and headers
 func NewResume(userID string, email string, file multipart.File,
 	header *multipart.FileHeader) (*Resume, error) {
 	uuid, err := uuid.NewV4()
@@ -66,6 +79,8 @@ func NewResume(userID string, email string, file multipart.File,
 	return &r, nil
 }
 
+// NewResumeWithUserID is a function that returns an instance of
+// a resume from the database based on the userID provided
 func NewResumeWithUserID(userID string) (*Resume, error) {
 	var r Resume
 	idFilter := bson.NewDocument(bson.EC.String("userid", userID))
@@ -76,6 +91,8 @@ func NewResumeWithUserID(userID string) (*Resume, error) {
 	return &r, nil
 }
 
+// NewResumeWithEmail is a function that returns an instance
+// of a resume from the database based on the email provided
 func NewResumeWithEmail(email string) (*Resume, error) {
 	var r Resume
 	idFilter := bson.NewDocument(bson.EC.String("email", email))
@@ -107,6 +124,8 @@ func (r *Resume) Upload() error {
 	return nil
 }
 
+// Save is a function that saves an instance of a resume to
+// mongodb and returns an error if any
 func (r *Resume) Save(ctx context.Context) error {
 	doc, err := bson.Marshal(r)
 	if err != nil {
@@ -119,6 +138,8 @@ func (r *Resume) Save(ctx context.Context) error {
 	return nil
 }
 
+// Update is a function that updates an instance of a resume and
+// saves it in the database for persistance
 func (r *Resume) Update(ctx context.Context) error {
 	filter := bson.NewDocument(
 		bson.EC.String("userid", r.UserID),
@@ -139,6 +160,9 @@ func (r *Resume) Update(ctx context.Context) error {
 	return nil
 }
 
+// getAllResumes is a function that get all the resumes and
+// returns an array. This function must only be called by admins
+// and will only be used to show the sponsors all the remsumes they need to see
 func getAllResumes(ctx context.Context) ([]Resume, error) {
 	cur, err := ResumeCollection.Find(ctx, nil)
 	if err != nil {
@@ -160,12 +184,17 @@ func getAllResumes(ctx context.Context) ([]Resume, error) {
 	return resumes, nil
 }
 
+// ResumeInsight is a struc that is used as an auxilary datastructure to resume when an external service
+// queries the resume server. It only contains minimal data that can be useful to the client.
 type ResumeInsight struct {
 	UserID string `json:"user_id,omitempty"`
 	Name   string `json:"name,omitempty"`
 	URL    string `json:"url,omitempty"`
 }
 
+// NewResumeInsightFromResume is a function that returns a ResumeInsight from a Resume.
+// This function is usually used at the end of a http handler to return only minimal
+// data to the client.
 func NewResumeInsightFromResume(r *Resume) *ResumeInsight {
 	ri := new(ResumeInsight)
 	ri.Name = r.Name

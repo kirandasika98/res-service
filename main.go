@@ -24,15 +24,22 @@ const (
 )
 
 var (
-	listenAddr      *string
+	// listenAddr is a flag that represents which host:port that the application must use
+	listenAddr *string
+	// kubernetes is a flag that is used to denote if the server is running kubernetes mode
 	kubernetes      *bool
 	MongoCollection *string
-	GCSCredentials  *string
+	// GCSCredentials is a flag that is used to specify where to fetch the google cloud credentials from
+	GCSCredentials *string
+	// MongoConnString is a flag that is used to set which mongodb the application must connect
 	MongoConnString *string
-	gcsBucket       *string
-	Hostname        string
+	// gcsBucket is a flag that is used to set which google cloud bucket that must used to upload resumes
+	gcsBucket *string
+	Hostname  string
 
-	MongoClient      *mongo.Client
+	// MongoClient is a variable used as a global connection to the mongodb
+	MongoClient *mongo.Client
+	// ResumeCollection is a variable that is used as global collection manager.
 	ResumeCollection *mongo.Collection
 )
 
@@ -119,12 +126,17 @@ func main() {
 	os.Exit(0)
 }
 
+// index is a http handler.
+// Lol, it's here just for obligatory purposes. :)
 func index(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
 	w.Write(marshal(map[string]interface{}{"ok": true}))
 }
 
+// upload is a http handler that is triggered by the client when there is a resume for upload.
+// This http handler does various check like the file extension of the uploaded file, etc. And
+// determines whether it must upload the resume to gcs.
 func upload(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
@@ -177,6 +189,9 @@ func upload(w http.ResponseWriter, r *http.Request) {
 	w.Write(marshal(map[string]interface{}{"ok": true, "data": res}))
 }
 
+// canUpload is http handler that used as a helper. This handler is triggered by the client
+// often as they want to see whether a certain user already has a resume on the database.
+// Doing this only because we dont want multiple copies for the same user
 func canUpload(w http.ResponseWriter, r *http.Request) {
 	userID, ok := r.URL.Query()["user_id"]
 	if !ok {
@@ -196,6 +211,8 @@ func canUpload(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// allResumes is a http handler that is triggered only by admins and used to fetch
+// a json document of all resumes and their URLs
 func allResumes(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
@@ -210,6 +227,8 @@ func allResumes(w http.ResponseWriter, r *http.Request) {
 	w.Write(marshal(map[string]interface{}{"ok": true, "data": res}))
 }
 
+// updateResume is a http handler that is used side by side with the upload handler.
+// This is called when the value returned from the canUpload is false.
 func updateResume(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	file, headers, err := r.FormFile("resume")
@@ -260,6 +279,9 @@ func updateResume(w http.ResponseWriter, r *http.Request) {
 	w.Write(marshal(map[string]interface{}{"ok": true}))
 }
 
+// resumeInsight is a http handler that is triggered by the registration system
+// to determine whether a user has upload their resume without having to go to the
+// resumes.auburnhacks.com subdomain to verify.
 func resumeInsight(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	glog.Info("this endpoint is in beta will be taken down if vulnerable")
@@ -285,12 +307,15 @@ func resumeInsight(w http.ResponseWriter, r *http.Request) {
 	w.Write(marshal(resi))
 }
 
+// healthz is a obligatory RPC call that is required by the kubernetes api server
 func healthz(w http.ResponseWriter, r *http.Request) {
 	// perform health check by connecting to mongo
 	w.WriteHeader(200)
 	w.Write([]byte("ok"))
 }
 
+// loggingMiddleware is a function used by the mux. It logs all the incoming HTTP requests to stderr
+// for debugging purposes.
 func loggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		enableCors(&w)
@@ -299,6 +324,8 @@ func loggingMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+// isAuthenticated is a middleware that is used by special handler function
+// if they return potentially secret information that has to regulated.
 func isAuthenticated(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authSlice, ok := r.Header["Authorization"]
@@ -319,6 +346,8 @@ func isAuthenticated(next http.Handler) http.Handler {
 	})
 }
 
+// enableCors is a helper function that is used to support development sanity for
+// CORS headers. In production it adds a host header that can be used for debugging
 func enableCors(w *http.ResponseWriter) {
 	if *kubernetes == false {
 		(*w).Header().Set("Access-Control-Allow-Origin", "*")
@@ -329,6 +358,8 @@ func enableCors(w *http.ResponseWriter) {
 	(*w).Header().Set("X-Served-Host", Hostname)
 }
 
+// downloadedGCSCredentials is a helper that is run to download the gcs credentials from
+// env variable provisioned by kubernetes
 func downloadGCSCredentials() error {
 	// Looks for GCS_CREDENTIALS env variable
 	if credData := os.Getenv("GCS_CREDENTIALS"); credData != "" {
@@ -351,6 +382,8 @@ func downloadGCSCredentials() error {
 	}
 	return nil
 }
+
+// marshal is helper function that marshals an interface and returns a byte slice.
 func marshal(o interface{}) []byte {
 	if o == nil {
 		return nil
